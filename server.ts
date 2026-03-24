@@ -14,7 +14,9 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-const dbPath = path.join(__dirname, 'data.json');
+const dbPath = process.env.VERCEL 
+  ? path.join('/tmp', 'data.json') 
+  : path.join(__dirname, 'data.json');
 
 // Initial DB structure
 const initialDb = {
@@ -112,24 +114,33 @@ app.delete('/api/shifts/:id', (req, res) => {
 });
 
 // Vite middleware for development
-async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production') {
+  async function startServer() {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(__dirname, 'dist');
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
+  startServer();
+} else {
+  const distPath = path.join(__dirname, 'dist');
+  if (fs.existsSync(distPath)) {
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  
+  // Only listen if not running on Vercel
+  if (!process.env.VERCEL) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
-startServer();
+export default app;
