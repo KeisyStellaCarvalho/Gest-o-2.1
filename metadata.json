@@ -1,0 +1,5 @@
+{
+  "name": "Gestão de Escalas Médicas",
+  "description": "Sistema de gestão de escalas médicas com cadastro de empresas, especialidades, profissionais e controle de ponto.",
+  "requestFramePermissions": []
+}
